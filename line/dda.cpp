@@ -7,6 +7,9 @@ struct Point {
 
 void drawLineDDA(GrayscaleImage &image, Point p1, Point p2, Byte color = 255)
 {
+    int width = image.GetWidth();
+    int height = image.GetHeight();
+
     float m = std::fabs((float)(p2.y - p1.y) / (float)(p2.x - p1.x));
 
     if (m < 1)
@@ -20,7 +23,10 @@ void drawLineDDA(GrayscaleImage &image, Point p1, Point p2, Byte color = 255)
 
         for (int x = p1.x; x <= p2.x; x++)
         {
-            image(x, std::round(y)) = color;
+            if (x > 0 && x < width && std::round(y) > 0 && std::round(y) < height)
+            {
+                image(x, std::round(y)) = color;
+            }
 
             if (p1.y < p2.y)
             {
@@ -45,7 +51,10 @@ void drawLineDDA(GrayscaleImage &image, Point p1, Point p2, Byte color = 255)
 
         for (int y = p1.y; y <= p2.y; y++)
         {
-            image(std::round(x), y) = color;
+            if (std::round(x) > 0 && std::round(x) < width && y > 0 && y < height)
+            {
+                image(std::round(x), y) = color;
+            }
 
             if (p1.x < p2.x)
             {

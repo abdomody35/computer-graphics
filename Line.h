@@ -21,6 +21,9 @@ namespace line
     {
         inline void drawLineDDA(GrayscaleImage &image, Point p1, Point p2, Byte color = 255)
         {
+            int width = image.GetWidth();
+            int height = image.GetHeight();
+
             float m = std::fabs((float)(p2.y - p1.y) / (float)(p2.x - p1.x));
 
             if (m < 1)
@@ -34,7 +37,10 @@ namespace line
 
                 for (int x = p1.x; x <= p2.x; x++)
                 {
-                    image(x, std::round(y)) = color;
+                    if (x > 0 && x < width && std::round(y) > 0 && std::round(y) < height)
+                    {
+                        image(x, std::round(y)) = color;
+                    }
 
                     if (p1.y < p2.y)
                     {
@@ -59,7 +65,10 @@ namespace line
 
                 for (int y = p1.y; y <= p2.y; y++)
                 {
-                    image(std::round(x), y) = color;
+                    if (std::round(x) > 0 && std::round(x) < width && y > 0 && y < height)
+                    {
+                        image(std::round(x), y) = color;
+                    }
 
                     if (p1.x < p2.x)
                     {
@@ -80,6 +89,9 @@ namespace line
 
         inline void drawLineMidPoint(GrayscaleImage &image, Point p1, Point p2, Byte color = 255)
         {
+            int width = image.GetWidth();
+            int height = image.GetHeight();
+
             float m = (float)(p2.y - p1.y) / (float)(p2.x - p1.x);
             float a = p1.y - p2.y;
             float b = p2.x - p1.x;
@@ -96,7 +108,10 @@ namespace line
 
                 for (int x = p1.x; x <= p2.x; x++)
                 {
-                    image(x, std::round(y)) = color;
+                    if (x > 0 && x < width && std::round(y) > 0 && std::round(y) < height)
+                    {
+                        image(x, std::round(y)) = color;
+                    }
 
                     float d1 = computeDecisionParameter(x + 1, y, a, b, c);
                     float d2 = computeDecisionParameter(x + 1, y + 1, a, b, c);
@@ -118,7 +133,10 @@ namespace line
 
                 for (int y = p1.y; y <= p2.y; y++)
                 {
-                    image(std::round(x), y) = color;
+                    if (std::round(x) > 0 && std::round(x) < width && y > 0 && y < height)
+                    {
+                        image(std::round(x), y) = color;
+                    }
 
                     float d1 = computeDecisionParameter(x, y + 1, a, b, c);
                     float d2 = computeDecisionParameter(x + 1, y + 1, a, b, c);
@@ -140,7 +158,10 @@ namespace line
 
                 for (int x = p1.x; x <= p2.x; x++)
                 {
-                    image(x, std::round(y)) = color;
+                    if (x > 0 && x < width && std::round(y) > 0 && std::round(y) < height)
+                    {
+                        image(x, std::round(y)) = color;
+                    }
 
                     float d1 = computeDecisionParameter(x + 1, y, a, b, c);
                     float d2 = computeDecisionParameter(x + 1, y - 1, a, b, c);
@@ -162,7 +183,10 @@ namespace line
 
                 for (int y = p1.y; y <= p2.y; y++)
                 {
-                    image(std::round(x), y) = color;
+                    if (std::round(x) > 0 && std::round(x) < width && y > 0 && y < height)
+                    {
+                        image(std::round(x), y) = color;
+                    }
 
                     float d1 = computeDecisionParameter(x, y - 1, a, b, c);
                     float d2 = computeDecisionParameter(x - 1, y - 1, a, b, c);
@@ -177,6 +201,9 @@ namespace line
 
         inline void drawLineBresenham(GrayscaleImage &image, Point p1, Point p2, Byte color = 255)
         {
+            int width = image.GetWidth();
+            int height = image.GetHeight();
+
             int delta_x = std::abs(p2.x - p1.x);
             int delta_y = std::abs(p2.y - p1.y);
 
@@ -189,7 +216,10 @@ namespace line
             {
                 for (;;)
                 {
-                    image(p1.x, p1.y) = color;
+                    if (p1.x > 0 && p1.x < width && p1.y > 0 && p1.y < height)
+                    {
+                        image(p1.x, p1.y) = color;
+                    }
 
                     if (p1.x == p2.x)
                         break;
@@ -210,7 +240,10 @@ namespace line
 
                 for (;;)
                 {
-                    image(p1.x, p1.y) = color;
+                    if (p1.x > 0 && p1.x < width && p1.y > 0 && p1.y < height)
+                    {
+                        image(p1.x, p1.y) = color;
+                    }
 
                     if (p1.y == p2.y)
                         break;

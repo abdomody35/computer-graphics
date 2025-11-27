@@ -8,6 +8,9 @@ struct Point
 
 void drawLineBresenham(GrayscaleImage &image, Point p1, Point p2, Byte color = 255)
 {
+    int width = image.GetWidth();
+    int height = image.GetHeight();
+
     int delta_x = std::abs(p2.x - p1.x);
     int delta_y = std::abs(p2.y - p1.y);
 
@@ -15,17 +18,20 @@ void drawLineBresenham(GrayscaleImage &image, Point p1, Point p2, Byte color = 2
     int step_y = (p1.y < p2.y) ? 1 : -1;
 
     int err = 2 * delta_y - delta_x;
-    
-    if(delta_x >= delta_y)
-    {
-        for(;;)
-        {
-            image(p1.x, p1.y) = color;
 
-            if(p1.x == p2.x)
+    if (delta_x >= delta_y)
+    {
+        for (;;)
+        {
+            if (p1.x > 0 && p1.x < width && p1.y > 0 && p1.y < height)
+            {
+                image(p1.x, p1.y) = color;
+            }
+
+            if (p1.x == p2.x)
                 break;
 
-            if(err >= 0)
+            if (err >= 0)
             {
                 p1.y += step_y;
                 err -= 2 * delta_x;
@@ -39,14 +45,17 @@ void drawLineBresenham(GrayscaleImage &image, Point p1, Point p2, Byte color = 2
     {
         err = 2 * delta_x - delta_y;
 
-        for(;;)
+        for (;;)
         {
-            image(p1.x, p1.y) = color;
+            if (p1.x > 0 && p1.x < width && p1.y > 0 && p1.y < height)
+            {
+                image(p1.x, p1.y) = color;
+            }
 
-            if(p1.y == p2.y)
+            if (p1.y == p2.y)
                 break;
 
-            if(err >= 0)
+            if (err >= 0)
             {
                 p1.x += step_x;
                 err -= 2 * delta_y;
