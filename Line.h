@@ -239,7 +239,7 @@ namespace line
         }
     }
 
-    inline void drawLine(GrayscaleImage &image, Point p1, Point p2, Algorithm algorithm = BRESENHAM, Byte color = 255)
+    inline void drawLine(GrayscaleImage &image, Point p1, Point p2, Byte color = 255, Algorithm algorithm = BRESENHAM)
     {
         switch (algorithm)
         {
