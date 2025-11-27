@@ -6,11 +6,19 @@ struct Point
     int y;
 };
 
-void drawLineBresenham(GrayscaleImage &image, Point p1, Point p2, Byte color = 255)
+void setPixel(GrayscaleImage &image, int x, int y, Byte color)
 {
     int width = image.GetWidth();
     int height = image.GetHeight();
 
+    if (x >= 0 && x < width && y >= 0 && y < height)
+    {
+        image(x, y) = color;
+    }
+}
+
+void drawLineBresenham(GrayscaleImage &image, Point p1, Point p2, Byte color = 255)
+{
     int delta_x = std::abs(p2.x - p1.x);
     int delta_y = std::abs(p2.y - p1.y);
 
@@ -23,10 +31,7 @@ void drawLineBresenham(GrayscaleImage &image, Point p1, Point p2, Byte color = 2
     {
         for (;;)
         {
-            if (p1.x > 0 && p1.x < width && p1.y > 0 && p1.y < height)
-            {
-                image(p1.x, p1.y) = color;
-            }
+            setPixel(image, p1.x, p1.y, color);
 
             if (p1.x == p2.x)
                 break;
@@ -47,10 +52,7 @@ void drawLineBresenham(GrayscaleImage &image, Point p1, Point p2, Byte color = 2
 
         for (;;)
         {
-            if (p1.x > 0 && p1.x < width && p1.y > 0 && p1.y < height)
-            {
-                image(p1.x, p1.y) = color;
-            }
+            setPixel(image, p1.x, p1.y, color);
 
             if (p1.y == p2.y)
                 break;

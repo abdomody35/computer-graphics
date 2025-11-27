@@ -1,15 +1,24 @@
 #include "../Image.h"
 
-struct Point {
+struct Point
+{
     int x;
     int y;
 };
 
-void drawLineDDA(GrayscaleImage &image, Point p1, Point p2, Byte color = 255)
+void setPixel(GrayscaleImage &image, int x, int y, Byte color)
 {
     int width = image.GetWidth();
     int height = image.GetHeight();
 
+    if (x >= 0 && x < width && y >= 0 && y < height)
+    {
+        image(x, y) = color;
+    }
+}
+
+void drawLineDDA(GrayscaleImage &image, Point p1, Point p2, Byte color = 255)
+{
     float m = std::fabs((float)(p2.y - p1.y) / (float)(p2.x - p1.x));
 
     if (m < 1)
@@ -23,10 +32,7 @@ void drawLineDDA(GrayscaleImage &image, Point p1, Point p2, Byte color = 255)
 
         for (int x = p1.x; x <= p2.x; x++)
         {
-            if (x > 0 && x < width && std::round(y) > 0 && std::round(y) < height)
-            {
-                image(x, std::round(y)) = color;
-            }
+            setPixel(image, x, std::round(y), color);
 
             if (p1.y < p2.y)
             {
@@ -51,10 +57,7 @@ void drawLineDDA(GrayscaleImage &image, Point p1, Point p2, Byte color = 255)
 
         for (int y = p1.y; y <= p2.y; y++)
         {
-            if (std::round(x) > 0 && std::round(x) < width && y > 0 && y < height)
-            {
-                image(std::round(x), y) = color;
-            }
+            setPixel(image, std::round(x), y, color);
 
             if (p1.x < p2.x)
             {
@@ -72,7 +75,7 @@ int main()
 {
     GrayscaleImage image(255, 255);
 
-    Point p1 = { 50, 20 }, p2 = { 80, 100 };
+    Point p1 = {50, 20}, p2 = {80, 100};
 
     drawLineDDA(image, p2, p1);
 
