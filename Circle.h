@@ -2,11 +2,16 @@
 
 #include "Image.h"
 
+#ifndef POINT
+#define POINT
+
 struct Point
 {
     int x;
     int y;
 };
+
+#endif
 
 namespace circle
 {
