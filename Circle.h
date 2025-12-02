@@ -131,19 +131,19 @@ namespace circle
                 }
             }
         }
+    }
 
-        inline void drawCircle(GrayscaleImage &image, const Point &center, int radius, bool fill = false, Byte color = 255, Algorithm algorithm = BRESENHAM)
+    inline void drawCircle(GrayscaleImage &image, const Point &center, int radius, bool fill = false, Byte color = 255, Algorithm algorithm = BRESENHAM)
+    {
+        switch (algorithm)
         {
-            switch (algorithm)
-            {
-            case MIDPOINT:
-                __detail::drawCircleMidPoint(image, center, radius, fill, color);
-                break;
-            case BRESENHAM:
-                __detail::drawCircleBresenham(image, center, radius, fill, color);
-            default:
-                break;
-            }
+        case MIDPOINT:
+            __detail::drawCircleMidPoint(image, center, radius, fill, color);
+            break;
+        case BRESENHAM:
+            __detail::drawCircleBresenham(image, center, radius, fill, color);
+        default:
+            break;
         }
     }
 }
