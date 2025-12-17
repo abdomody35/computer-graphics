@@ -58,8 +58,17 @@ namespace gradient
                     float b_start, float b_step, std::optional<float> b_end)
             : r(r_start, r_step, r_end), g(g_start, g_step, g_end), b(b_start, b_step, b_end) {}
 
+        RGBGradient(RGBA stratColor, RGBA endColor, float r_step, float g_step, float b_step)
+            : r(stratColor.r, r_step, endColor.r), g(stratColor.g, g_step, endColor.g), b(stratColor.b, b_step, endColor.b) {}
+
+        RGBGradient(RGBA stratColor, RGBA endColor, float step)
+            : r(stratColor.r, step, endColor.r), g(stratColor.g, step, endColor.g), b(stratColor.b, step, endColor.b) {}
+
         RGBGradient(RGBA color, float r_step, float g_step, float b_step)
             : RGBGradient(color.r, r_step, std::nullopt, color.g, g_step, std::nullopt, color.b, b_step, std::nullopt) {}
+
+        RGBGradient(RGBA color, float step)
+            : RGBGradient(color.r, step, std::nullopt, color.g, step, std::nullopt, color.b, step, std::nullopt) {}
 
         RGBA operator()()
         {
