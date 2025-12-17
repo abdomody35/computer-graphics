@@ -275,7 +275,7 @@ namespace line
         }
     }
 
-    inline void drawLine(GrayscaleImage &image, Point p1, Point p2, gradient::Gradient color, Algorithm algorithm = BRESENHAM)
+    inline void drawLine(GrayscaleImage &image, Point p1, Point p2, gradient::Gradient &color, Algorithm algorithm = BRESENHAM)
     {
         switch (algorithm)
         {
@@ -309,7 +309,7 @@ namespace line
         }
     }
 
-    inline void drawLine(ColorImage &image, Point p1, Point p2, gradient::RGBGradient color, Algorithm algorithm = BRESENHAM)
+    inline void drawLine(ColorImage &image, Point p1, Point p2, gradient::RGBGradient &color, Algorithm algorithm = BRESENHAM)
     {
         switch (algorithm)
         {
