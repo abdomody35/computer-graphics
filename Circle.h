@@ -23,7 +23,9 @@ namespace circle
 
     namespace __detail
     {
-        void setPixel(GrayscaleImage &image, int x, int y, Byte color)
+
+        template <typename Image, typename Color>
+        void setPixel(Image &image, int x, int y, Color color)
         {
             int width = image.GetWidth();
             int height = image.GetHeight();
@@ -34,7 +36,8 @@ namespace circle
             }
         }
 
-        inline void setCirclePixels(GrayscaleImage &image, const Point &center, int x, int y, bool fill, Byte color)
+        template <typename Image, typename Color>
+        inline void setCirclePixels(Image &image, const Point &center, int x, int y, bool fill, Color color)
         {
             Point o1 = {center.x + x, center.y + y};
             Point o2 = {center.x - x, center.y + y};
@@ -75,7 +78,8 @@ namespace circle
             }
         }
 
-        inline void drawCircleMidPoint(GrayscaleImage &image, const Point &center, int radius, bool fill = false, Byte color = 255)
+        template <typename Image, typename Color>
+        inline void drawCircleMidPoint(Image &image, const Point &center, int radius, Color color, bool fill = false)
         {
             if (radius <= 0)
             {
@@ -102,7 +106,8 @@ namespace circle
             }
         }
 
-        inline void drawCircleBresenham(GrayscaleImage &image, const Point &center, int radius, bool fill = false, Byte color = 255)
+        template <typename Image, typename Color>
+        inline void drawCircleBresenham(Image &image, const Point &center, int radius, Color color, bool fill = false)
         {
             if (radius <= 0)
             {
@@ -133,15 +138,29 @@ namespace circle
         }
     }
 
-    inline void drawCircle(GrayscaleImage &image, const Point &center, int radius, bool fill = false, Byte color = 255, Algorithm algorithm = BRESENHAM)
+    inline void drawCircle(GrayscaleImage &image, const Point &center, int radius, Byte color = 255, bool fill = false, Algorithm algorithm = BRESENHAM)
     {
         switch (algorithm)
         {
         case MIDPOINT:
-            __detail::drawCircleMidPoint(image, center, radius, fill, color);
+            __detail::drawCircleMidPoint(image, center, radius, color, fill);
             break;
         case BRESENHAM:
-            __detail::drawCircleBresenham(image, center, radius, fill, color);
+            __detail::drawCircleBresenham(image, center, radius, color, fill);
+        default:
+            break;
+        }
+    }
+
+    inline void drawCircle(ColorImage &image, const Point &center, int radius, RGBA color, bool fill = false, Algorithm algorithm = BRESENHAM)
+    {
+        switch (algorithm)
+        {
+        case MIDPOINT:
+            __detail::drawCircleMidPoint(image, center, radius, color, fill);
+            break;
+        case BRESENHAM:
+            __detail::drawCircleBresenham(image, center, radius, color, fill);
         default:
             break;
         }

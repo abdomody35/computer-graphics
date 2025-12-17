@@ -24,7 +24,8 @@ namespace line
 
     namespace __detail
     {
-        void setPixel(GrayscaleImage &image, int x, int y, Byte color)
+        template <typename Image, typename Color>
+        void setPixel(Image &image, int x, int y, Color color)
         {
             int width = image.GetWidth();
             int height = image.GetHeight();
@@ -35,7 +36,8 @@ namespace line
             }
         }
 
-        inline void drawLineDDA(GrayscaleImage &image, Point p1, Point p2, Byte color = 255)
+        template <typename Image, typename Color>
+        inline void drawLineDDA(Image &image, Point p1, Point p2, Color color)
         {
             float m = std::fabs((float)(p2.y - p1.y) / (float)(p2.x - p1.x));
 
@@ -94,7 +96,8 @@ namespace line
             return std::fabs(a * x + b * y + c);
         }
 
-        inline void drawLineMidPoint(GrayscaleImage &image, Point p1, Point p2, Byte color = 255)
+        template <typename Image, typename Color>
+        inline void drawLineMidPoint(Image &image, Point p1, Point p2, Color color)
         {
             float m = (float)(p2.y - p1.y) / (float)(p2.x - p1.x);
             float a = p1.y - p2.y;
@@ -191,7 +194,8 @@ namespace line
             }
         }
 
-        inline void drawLineBresenham(GrayscaleImage &image, Point p1, Point p2, Byte color = 255)
+        template <typename Image, typename Color>
+        inline void drawLineBresenham(Image &image, Point p1, Point p2, Color color)
         {
             int delta_x = std::abs(p2.x - p1.x);
             int delta_y = std::abs(p2.y - p1.y);
@@ -245,6 +249,23 @@ namespace line
     }
 
     inline void drawLine(GrayscaleImage &image, Point p1, Point p2, Byte color = 255, Algorithm algorithm = BRESENHAM)
+    {
+        switch (algorithm)
+        {
+        case DDA:
+            __detail::drawLineDDA(image, p1, p2, color);
+            break;
+        case MIDPOINT:
+            __detail::drawLineMidPoint(image, p1, p2, color);
+            break;
+        case BRESENHAM:
+            __detail::drawLineBresenham(image, p1, p2, color);
+        default:
+            break;
+        }
+    }
+
+    inline void drawLine(ColorImage &image, Point p1, Point p2, RGBA color = RGBA(255, 255, 255), Algorithm algorithm = BRESENHAM)
     {
         switch (algorithm)
         {
