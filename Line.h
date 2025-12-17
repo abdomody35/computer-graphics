@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Image.h"
+#include "Gradient.h"
 
 #ifndef POINT
 #define POINT
@@ -25,14 +26,23 @@ namespace line
     namespace __detail
     {
         template <typename Image, typename Color>
-        void setPixel(Image &image, int x, int y, Color color)
+        void setPixel(Image &image, int x, int y, Color &color)
         {
             int width = image.GetWidth();
             int height = image.GetHeight();
 
             if (x >= 0 && x < width && y >= 0 && y < height)
             {
-                image(x, y) = color;
+                if constexpr (std::is_invocable_v<Color>)
+                {
+                    // Color is a callable (gradient functor)
+                    image(x, y) = color();
+                }
+                else
+                {
+                    // Color is a plain value (Byte or RGBA)
+                    image(x, y) = color;
+                }
             }
         }
 
@@ -265,7 +275,41 @@ namespace line
         }
     }
 
+    inline void drawLine(GrayscaleImage &image, Point p1, Point p2, gradient::Gradient color, Algorithm algorithm = BRESENHAM)
+    {
+        switch (algorithm)
+        {
+        case DDA:
+            __detail::drawLineDDA(image, p1, p2, color);
+            break;
+        case MIDPOINT:
+            __detail::drawLineMidPoint(image, p1, p2, color);
+            break;
+        case BRESENHAM:
+            __detail::drawLineBresenham(image, p1, p2, color);
+        default:
+            break;
+        }
+    }
+
     inline void drawLine(ColorImage &image, Point p1, Point p2, RGBA color = RGBA(255, 255, 255), Algorithm algorithm = BRESENHAM)
+    {
+        switch (algorithm)
+        {
+        case DDA:
+            __detail::drawLineDDA(image, p1, p2, color);
+            break;
+        case MIDPOINT:
+            __detail::drawLineMidPoint(image, p1, p2, color);
+            break;
+        case BRESENHAM:
+            __detail::drawLineBresenham(image, p1, p2, color);
+        default:
+            break;
+        }
+    }
+
+    inline void drawLine(ColorImage &image, Point p1, Point p2, gradient::RGBGradient color, Algorithm algorithm = BRESENHAM)
     {
         switch (algorithm)
         {
