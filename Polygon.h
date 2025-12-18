@@ -6,16 +6,23 @@
 
 namespace polygon
 {
+    enum class WindingRule
+    {
+        ODD = 0,
+        POSITIVE
+    };
+
     namespace __detail
     {
         struct Line
         {
             int y_min, y_max;
             float x, slope_inverse;
+            int direction;
         };
 
         template <typename Image, typename OutlineColor, typename FillColor>
-        void drawPolygon(Image &image, const std::vector<Point> &points, OutlineColor outlineColor, std::optional<FillColor> fillColor, bool skipOutline)
+        void drawPolygon(Image &image, const std::vector<Point> &points, OutlineColor outlineColor, std::optional<FillColor> fillColor, bool skipOutline, WindingRule windingRule = WindingRule::ODD)
         {
             int n = points.size();
 
@@ -28,9 +35,16 @@ namespace polygon
                 {
                     Point p1 = points[i], p2 = points[(i + 1) % n];
 
+                    int direction;
+
                     if (p1.y > p2.y)
                     {
                         std::swap(p1, p2);
+                        direction = -1;
+                    }
+                    else
+                    {
+                        direction = 1;
                     }
 
                     if (p1.y == p2.y || p1.y > image.GetHeight() || p2.y < 0)
@@ -38,7 +52,7 @@ namespace polygon
                         continue;
                     }
 
-                    lines.push_back({p1.y, p2.y, float(p1.x), (p2.x - p1.x) / float(p2.y - p1.y)});
+                    lines.push_back({p1.y, p2.y, float(p1.x), (p2.x - p1.x) / float(p2.y - p1.y), direction});
 
                     if (i == 0)
                     {
@@ -83,20 +97,49 @@ namespace polygon
                         }
                     }
 
-                    std::vector<int> x_coords;
+                    std::sort(activeLines.begin(), activeLines.end(), [](const auto &a, const auto &b) { return a.x < b.x; });
+
+                    std::vector<std::pair<float, int>> x_coords;
+
                     for (auto &line : activeLines)
                     {
-                        x_coords.push_back(line.x);
+                        x_coords.push_back({line.x, line.direction});
                         line.x += line.slope_inverse;
                     }
 
-                    std::sort(x_coords.begin(), x_coords.end());
-
-                    for (int i = 0; i < x_coords.size(); i += 2)
+                    if (windingRule == WindingRule::ODD) // Default so just fill normally between x pairs
                     {
-                        int x1 = int(std::round(x_coords[i])), x2 = int(std::round(x_coords[i + 1]));
-                        fillLines.push_back({{x1, y}, {x2, y}});
-                        pointCount += x2 - x1 + 1;
+                        for (int i = 0; i < x_coords.size(); i += 2)
+                        {
+                            int x1 = int(std::round(x_coords[i].first)), x2 = int(std::round(x_coords[i + 1].first));
+                            fillLines.push_back({{x1, y}, {x2, y}});
+                            pointCount += x2 - x1 + 1;
+                        }
+                    }
+                    else // if (windingRule == WindingRule::POSITIVE)
+                    {
+                        int winding = 0;
+                        int fill_start = -1;
+
+                        for (const auto &x_coord : x_coords)
+                        {
+                            winding += x_coord.second;
+
+                            if (winding > 0 && fill_start < 0)
+                            {
+                                fill_start = int(std::round(x_coord.first));
+                            }
+                            else if (winding <= 0 && fill_start >= 0)
+                            {
+                                int fill_end = int(std::round(x_coord.first));
+                                if (fill_end > fill_start)
+                                {
+                                    fillLines.push_back({{fill_start, y}, {fill_end, y}});
+                                    pointCount += fill_end - fill_start + 1;
+                                }
+                                fill_start = -1;
+                            }
+                        }
                     }
                 }
 
@@ -148,65 +191,65 @@ namespace polygon
 
     // ========== GrayscaleImage ==========
     // Default: white outline, no fill
-    inline void drawPolygon(GrayscaleImage &image, const std::vector<Point> &points)
+    inline void drawPolygon(GrayscaleImage &image, const std::vector<Point> &points, WindingRule windingRule = WindingRule::ODD)
     {
-        __detail::drawPolygon(image, points, Byte(255), std::optional<Byte>(), false);
+        __detail::drawPolygon(image, points, Byte(255), std::optional<Byte>(), false, windingRule);
     }
 
     // Custom outline, no fill
-    inline void drawPolygon(GrayscaleImage &image, const std::vector<Point> &points, Byte outlineColor)
+    inline void drawPolygon(GrayscaleImage &image, const std::vector<Point> &points, Byte outlineColor, WindingRule windingRule = WindingRule::ODD)
     {
-        __detail::drawPolygon(image, points, outlineColor, std::optional<Byte>(), false);
+        __detail::drawPolygon(image, points, outlineColor, std::optional<Byte>(), false, windingRule);
     }
 
     // Custom outline, solid fill
-    inline void drawPolygon(GrayscaleImage &image, const std::vector<Point> &points, Byte outlineColor, Byte fillColor)
+    inline void drawPolygon(GrayscaleImage &image, const std::vector<Point> &points, Byte outlineColor, Byte fillColor, WindingRule windingRule = WindingRule::ODD)
     {
         bool skipOutline = (outlineColor == fillColor);
-        __detail::drawPolygon(image, points, outlineColor, std::optional<Byte>(fillColor), skipOutline);
+        __detail::drawPolygon(image, points, outlineColor, std::optional<Byte>(fillColor), skipOutline, windingRule);
     }
 
     // Custom outline, gradient fill
-    inline void drawPolygon(GrayscaleImage &image, const std::vector<Point> &points, Byte outlineColor, gradient::Gradient fillColor)
+    inline void drawPolygon(GrayscaleImage &image, const std::vector<Point> &points, Byte outlineColor, gradient::Gradient fillColor, WindingRule windingRule = WindingRule::ODD)
     {
-        __detail::drawPolygon(image, points, outlineColor, std::optional<gradient::Gradient>(fillColor), false);
+        __detail::drawPolygon(image, points, outlineColor, std::optional<gradient::Gradient>(fillColor), false, windingRule);
     }
 
     // Gradient fill only, no outline
-    inline void drawPolygon(GrayscaleImage &image, const std::vector<Point> &points, gradient::Gradient fillColor)
+    inline void drawPolygon(GrayscaleImage &image, const std::vector<Point> &points, gradient::Gradient fillColor, WindingRule windingRule = WindingRule::ODD)
     {
-        __detail::drawPolygon(image, points, 0, std::optional<gradient::Gradient>(fillColor), true);
+        __detail::drawPolygon(image, points, 0, std::optional<gradient::Gradient>(fillColor), true, windingRule);
     }
 
     // ========== ColorImage ==========
     // Default: white outline, no fill
-    inline void drawPolygon(ColorImage &image, const std::vector<Point> &points)
+    inline void drawPolygon(ColorImage &image, const std::vector<Point> &points, WindingRule windingRule = WindingRule::ODD)
     {
-        __detail::drawPolygon(image, points, RGBA(255, 255, 255), std::optional<RGBA>(), false);
+        __detail::drawPolygon(image, points, RGBA(255, 255, 255), std::optional<RGBA>(), false, windingRule);
     }
 
     // Custom outline, no fill
-    inline void drawPolygon(ColorImage &image, const std::vector<Point> &points, RGBA outlineColor)
+    inline void drawPolygon(ColorImage &image, const std::vector<Point> &points, RGBA outlineColor, WindingRule windingRule = WindingRule::ODD)
     {
-        __detail::drawPolygon(image, points, outlineColor, std::optional<RGBA>(), false);
+        __detail::drawPolygon(image, points, outlineColor, std::optional<RGBA>(), false, windingRule);
     }
 
     // Custom outline, solid fill
-    inline void drawPolygon(ColorImage &image, const std::vector<Point> &points, RGBA outlineColor, RGBA fillColor)
+    inline void drawPolygon(ColorImage &image, const std::vector<Point> &points, RGBA outlineColor, RGBA fillColor, WindingRule windingRule = WindingRule::ODD)
     {
         bool skipOutline = (outlineColor.r == fillColor.r && outlineColor.g == fillColor.g && outlineColor.b == fillColor.b);
-        __detail::drawPolygon(image, points, outlineColor, std::optional<RGBA>(fillColor), skipOutline);
+        __detail::drawPolygon(image, points, outlineColor, std::optional<RGBA>(fillColor), skipOutline, windingRule);
     }
 
     // Custom outline, gradient fill (never skip outline)
-    inline void drawPolygon(ColorImage &image, const std::vector<Point> &points, RGBA outlineColor, gradient::RGBGradient fillColor)
+    inline void drawPolygon(ColorImage &image, const std::vector<Point> &points, RGBA outlineColor, gradient::RGBGradient fillColor, WindingRule windingRule = WindingRule::ODD)
     {
-        __detail::drawPolygon(image, points, outlineColor, std::optional<gradient::RGBGradient>(fillColor), false);
+        __detail::drawPolygon(image, points, outlineColor, std::optional<gradient::RGBGradient>(fillColor), false, windingRule);
     }
 
     // Gradient fill only, no outline
-    inline void drawPolygon(ColorImage &image, const std::vector<Point> &points, gradient::RGBGradient fillColor)
+    inline void drawPolygon(ColorImage &image, const std::vector<Point> &points, gradient::RGBGradient fillColor, WindingRule windingRule = WindingRule::ODD)
     {
-        __detail::drawPolygon(image, points, RGBA(0, 0, 0), std::optional<gradient::RGBGradient>(fillColor), true);
+        __detail::drawPolygon(image, points, RGBA(0, 0, 0), std::optional<gradient::RGBGradient>(fillColor), true, windingRule);
     }
 }
