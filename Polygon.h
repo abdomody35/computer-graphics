@@ -107,38 +107,37 @@ namespace polygon
                         line.x += line.slope_inverse;
                     }
 
-                    if (windingRule == WindingRule::ODD) // Default so just fill normally between x pairs
+                    int winding = 0;
+                    int fill_start = -1;
+
+                    for (const auto &x_coord : x_coords)
                     {
-                        for (int i = 0; i < x_coords.size(); i += 2)
+                        winding += x_coord.second;
+
+                        bool should_fill;
+
+                        if (windingRule == WindingRule::ODD)
                         {
-                            int x1 = int(std::round(x_coords[i].first)), x2 = int(std::round(x_coords[i + 1].first));
-                            fillLines.push_back({{x1, y}, {x2, y}});
-                            pointCount += x2 - x1 + 1;
+                            should_fill = winding % 2;
                         }
-                    }
-                    else // if (windingRule == WindingRule::POSITIVE)
-                    {
-                        int winding = 0;
-                        int fill_start = -1;
-
-                        for (const auto &x_coord : x_coords)
+                        else // if (windingRule == WindingRule::POSITIVE)
                         {
-                            winding += x_coord.second;
+                            should_fill = winding > 0;
+                        }
 
-                            if (winding > 0 && fill_start < 0)
+                        if (should_fill && fill_start < 0)
+                        {
+                            fill_start = int(std::round(x_coord.first));
+                        }
+                        else if (!should_fill && fill_start >= 0)
+                        {
+                            int fill_end = int(std::round(x_coord.first));
+                            if (fill_end > fill_start)
                             {
-                                fill_start = int(std::round(x_coord.first));
+                                fillLines.push_back({{fill_start, y}, {fill_end, y}});
+                                pointCount += fill_end - fill_start + 1;
                             }
-                            else if (winding <= 0 && fill_start >= 0)
-                            {
-                                int fill_end = int(std::round(x_coord.first));
-                                if (fill_end > fill_start)
-                                {
-                                    fillLines.push_back({{fill_start, y}, {fill_end, y}});
-                                    pointCount += fill_end - fill_start + 1;
-                                }
-                                fill_start = -1;
-                            }
+                            fill_start = -1;
                         }
                     }
                 }
