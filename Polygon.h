@@ -29,7 +29,9 @@ namespace polygon
             if (fillColor.has_value())
             {
                 std::vector<__detail::Line> lines;
-                int y_min, y_max;
+
+                int y_min = points[0].y, y_max = points[0].y;
+                int x_min = points[0].x, x_max = points[0].x;
 
                 for (int i = 0; i < n; i++)
                 {
@@ -54,23 +56,13 @@ namespace polygon
 
                     lines.push_back({p1.y, p2.y, float(p1.x), (p2.x - p1.x) / float(p2.y - p1.y), direction});
 
-                    if (i == 0)
-                    {
-                        y_min = p1.y;
-                        y_max = p2.y;
-                    }
-                    else
-                    {
-                        if (p1.y < y_min)
-                        {
-                            y_min = p1.y;
-                        }
-                        if (p2.y > y_max)
-                        {
-                            y_max = p2.y;
-                        }
-                    }
+                    x_min = std::min(x_min, std::min(p1.x, p2.x));
+                    x_max = std::max(x_max, std::max(p1.x, p2.x));
+                    y_min = std::min(y_min, std::min(p1.y, p2.y));
+                    y_max = std::max(y_max, std::max(p1.y, p2.y));
                 }
+
+                Point center = {(x_min + x_max) / 2, (y_min + y_max) / 2};
 
                 std::vector<__detail::Line> activeLines;
                 std::vector<std::pair<Point, Point>> fillLines;
@@ -146,18 +138,19 @@ namespace polygon
                 {
                     FillColor gradient = fillColor.value();
 
-                    if constexpr (std::is_same_v<FillColor, gradient::Gradient>)
+                    if constexpr (std::is_same_v<FillColor, gradient::Gradient> || std::is_same_v<FillColor, gradient::RGBGradient>)
                     {
-                        if (gradient.isAutoStep())
+                        if (gradient.isDirectional())
                         {
-                            gradient.calculateStep(pointCount);
+                            gradient.setCenter(center);
+                            gradient.calculateProjectionRange(fillLines);
                         }
-                    }
-                    else if constexpr (std::is_same_v<FillColor, gradient::RGBGradient>)
-                    {
-                        if (gradient.isAutoStep())
+                        else
                         {
-                            gradient.calculateSteps(pointCount);
+                            if (gradient.isAutoStep())
+                            {
+                                gradient.calculateStep(pointCount);
+                            }
                         }
                     }
 
@@ -165,7 +158,14 @@ namespace polygon
                     {
                         for (int x = line.first.x; x <= line.second.x; x++)
                         {
-                            image(x, line.first.y) = gradient();
+                            if (gradient.isDirectional())
+                            {
+                                image(x, line.first.y) = gradient(x, line.first.y);
+                            }
+                            else
+                            {
+                                image(x, line.first.y) = gradient();
+                            }
                         }
                     }
                 }
