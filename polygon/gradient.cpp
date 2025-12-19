@@ -9,7 +9,7 @@ struct Line
     float x, slope_inverse;
 };
 
-void drawGradientPolygon(GrayscaleImage &image, const std::vector<Point> &points, std::optional<Byte> outlineColor = std::nullopt, std::optional<std::function<int()>> fillColor = std::nullopt)
+void drawGradientPolygon(GrayscaleImage &image, const std::vector<Point> &points, std::optional<Byte> outlineColor = std::nullopt, std::optional<gradient::Gradient> fillColor = std::nullopt)
 {
     int n = points.size();
 
@@ -92,22 +92,22 @@ void drawGradientPolygon(GrayscaleImage &image, const std::vector<Point> &points
 
             fillLines.push_back({{x1, y}, {x2, y}});
 
-            pointCount += x2 - x1;
+            pointCount += x2 - x1 + 1;
         }
     }
 
-    gradient::Gradient gradient(0, 255.0f / pointCount);
-
     if (!fillColor.has_value())
     {
-        fillColor = gradient;
+        fillColor = gradient::Gradient::Sequential(0, 255);
     }
 
+    int currentPoint = 0;
     for (const auto &line : fillLines)
     {
         for (int x = line.first.x; x <= line.second.x; x++)
         {
-            image(x, line.first.y) = fillColor.value()();
+            image(x, line.first.y) = fillColor.value().next(pointCount, currentPoint);
+            currentPoint++;
         }
     }
 

@@ -12,17 +12,17 @@ int main()
 
     GrayscaleImage grayscaleImage(256, 256);
 
-    gradient::Gradient grayGradient(0, std::nullopt, 255, 120.0f);
+    auto grayGradient = gradient::Gradient::Angle(0, 255, 120.0f);
 
-    polygon::drawPolygon(grayscaleImage, polygonPoints, grayGradient);
+    polygon::drawPolygon(grayscaleImage, polygonPoints, 255, grayGradient);
 
     grayscaleImage.Save("directional-grayscale.png");
 
     ColorImage colorImage(256, 256);
 
-    gradient::RGBGradient rgbGradient(RGBA(255, 0, 0), std::nullopt, RGBA(0, 0, 255), 30.0f);
+    auto rgbGradient = gradient::RGBGradient::Angle(RGBA(255, 0, 0), RGBA(0, 0, 255), 30.0f);
 
-    polygon::drawPolygon(colorImage, polygonPoints, rgbGradient);
+    polygon::drawPolygon(colorImage, polygonPoints, RGBA(255, 255, 0), rgbGradient);
 
     colorImage.Save("directional-rgb.png");
 

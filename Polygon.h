@@ -2,6 +2,7 @@
 
 #include "Image.h"
 #include "Line.h"
+#include "Gradient.h"
 #include <optional>
 
 namespace polygon
@@ -134,37 +135,32 @@ namespace polygon
                     }
                 }
 
-                if constexpr (std::is_invocable_v<FillColor>)
+                if constexpr (std::is_same_v<FillColor, gradient::Gradient> ||
+                              std::is_same_v<FillColor, gradient::RGBGradient>)
                 {
                     FillColor gradient = fillColor.value();
 
-                    if constexpr (std::is_same_v<FillColor, gradient::Gradient> || std::is_same_v<FillColor, gradient::RGBGradient>)
+                    if (gradient.isDirectional())
                     {
-                        if (gradient.isDirectional())
+                        gradient.prepareDirectional(center, fillLines);
+
+                        for (const auto &line : fillLines)
                         {
-                            gradient.setCenter(center);
-                            gradient.calculateProjectionRange(fillLines);
-                        }
-                        else
-                        {
-                            if (gradient.isAutoStep())
+                            for (int x = line.first.x; x <= line.second.x; x++)
                             {
-                                gradient.calculateStep(pointCount);
+                                image(x, line.first.y) = gradient.at(x, line.first.y);
                             }
                         }
                     }
-
-                    for (const auto &line : fillLines)
+                    else
                     {
-                        for (int x = line.first.x; x <= line.second.x; x++)
+                        int currentPoint = 0;
+                        for (const auto &line : fillLines)
                         {
-                            if (gradient.isDirectional())
+                            for (int x = line.first.x; x <= line.second.x; x++)
                             {
-                                image(x, line.first.y) = gradient(x, line.first.y);
-                            }
-                            else
-                            {
-                                image(x, line.first.y) = gradient();
+                                image(x, line.first.y) = gradient.next(pointCount, currentPoint);
+                                currentPoint++;
                             }
                         }
                     }

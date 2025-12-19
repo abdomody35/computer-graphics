@@ -9,7 +9,7 @@ struct Line
     float x, slope_inverse;
 };
 
-void drawColorGradientPolygon(ColorImage &image, const std::vector<Point> &points, std::optional<RGBA> outlineColor = std::nullopt, std::optional<std::function<RGBA()>> fillColor = std::nullopt)
+void drawColorGradientPolygon(ColorImage &image, const std::vector<Point> &points, std::optional<RGBA> outlineColor = std::nullopt, std::optional<gradient::RGBGradient> fillColor = std::nullopt)
 {
     int n = points.size();
 
@@ -92,22 +92,22 @@ void drawColorGradientPolygon(ColorImage &image, const std::vector<Point> &point
 
             fillLines.push_back({{x1, y}, {x2, y}});
 
-            pointCount += x2 - x1;
+            pointCount += x2 - x1 + 1;
         }
     }
 
-    gradient::Gradient gradient(0, 255.0f / pointCount);
-
     if (!fillColor.has_value())
     {
-        fillColor = gradient;
+        fillColor = gradient::RGBGradient::Sequential(RGBA(0, 0, 0), RGBA(255, 255, 255));
     }
 
+    int currentPoint = 0;
     for (const auto &line : fillLines)
     {
         for (int x = line.first.x; x <= line.second.x; x++)
         {
-            image(x, line.first.y) = fillColor.value()();
+            image(x, line.first.y) = fillColor.value().next(pointCount, currentPoint);
+            currentPoint++;
         }
     }
 
@@ -131,7 +131,7 @@ int main()
         {192, 64},
         {128, 128}};
 
-    gradient::RGBGradient rgbGradient(RGBA(0, 0, 0), 0.02f, 0, 0);
+    auto rgbGradient = gradient::RGBGradient::Sequential(RGBA(255, 0, 0), RGBA(0, 0, 255));
 
     drawColorGradientPolygon(image, polygonPoints, RGBA(255, 255, 0), rgbGradient);
 
